@@ -82,18 +82,15 @@ def event(n: int) -> dict[str, any]:
     s = SCHEDULE[mod]
     return EVENTS[s]
 
-def start_date(n: int) -> date:
-    return SCHED_START + timedelta(days=n)
-
-def csv_row(n, d) -> Optional[list]:
-    e = event(n)
+def csv_row(n, n_shift, d) -> Optional[list]:
+    e = event(n + n_shift)
     if e[IS_EMPTY]:
         return None
 
     subject = e[SUB]
 
     days_to_add = e[ADD_DAYS]
-    start_d = start_date(n)
+    start_d = OUT_START + timedelta(days=n)
     end_d = start_d + timedelta(days=days_to_add)
 
     start_t = e[START_TIME]
@@ -103,12 +100,13 @@ def csv_row(n, d) -> Optional[list]:
 
 def main():
     d = OUT_START
+    n_shift = (d - SCHED_START).days % len(SCHEDULE)
 
     with open("sched.csv", 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([SUB, START_DATE, END_DATE, START_TIME, END_TIME])
         for n in range(OUT_COUNT):
-            row = csv_row(n, d)
+            row = csv_row(n, n_shift, d)
             if row is not None:
                 writer.writerow(row)
             d = d + timedelta(days=1)
